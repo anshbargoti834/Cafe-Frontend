@@ -1,19 +1,25 @@
 import { useEffect, useState, useMemo, memo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
-import { endpoints } from '../../services/api';
+// 1. IMPORT SERVER_URL HERE
+import { endpoints, SERVER_URL } from '../../services/api';
 import { MenuItem } from '../../types';
 import { HiPlus, HiPencil, HiTrash, HiSearch, HiPhotograph, HiX, HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 const CATEGORIES = ['Coffee', 'Dessert', 'Bakery', 'Special', 'Breakfast'];
-const ITEMS_PER_PAGE = 6; // UPDATED: Only 6 items per page
+const ITEMS_PER_PAGE = 6; 
 
-// --- HELPER: Image URL ---
+// --- 2. UPDATED HELPER: Image URL ---
 const getImageUrl = (path: string) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  const cleanPath = path.replace(/\\/g, '/').replace(/^\//, '');
-  // NOTE: If testing on phone, replace 'localhost' with your computer's IP (e.g., 192.168.1.5)
-  return `http://localhost:4000/${encodeURI(cleanPath)}`;
+  
+  // Normalize slashes
+  let cleanPath = path.replace(/\\/g, '/');
+  // Ensure it starts with a slash
+  if (!cleanPath.startsWith('/')) cleanPath = `/${cleanPath}`;
+  
+  // Use the dynamic SERVER_URL (Works on Vercel & Localhost)
+  return `${SERVER_URL}${encodeURI(cleanPath)}`;
 };
 
 // --- OPTIMIZED CARD ---
@@ -118,6 +124,7 @@ const MenuManager = () => {
       setValue('category', item.category);
       setValue('description', item.description);
       setValue('isAvailable', item.isAvailable);
+      // Use helper for existing images
       setPreview(getImageUrl(item.image)); 
     } else {
       setEditingItem(null);

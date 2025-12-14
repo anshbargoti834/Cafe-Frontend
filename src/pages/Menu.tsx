@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo, memo, useRef } from 'react';
-import { endpoints } from '../services/api';
+import { endpoints, SERVER_URL } from '../services/api'; // <--- IMPORT SERVER_URL HERE
 import { MenuItem } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageHeader from '../components/PageHeader';
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi'; 
 
-const API_BASE_URL = 'http://localhost:4000'; 
+// const API_BASE_URL = 'http://localhost:4000'; <--- DELETED THIS LINE
+
 const ITEMS_PER_PAGE = 9; 
 
 // --- HELPER: Image URL ---
@@ -14,7 +15,9 @@ const getImageUrl = (imagePath: string) => {
   if (imagePath.startsWith('http')) return imagePath;
   let cleanPath = imagePath.replace(/\\/g, '/');
   if (!cleanPath.startsWith('/')) cleanPath = `/${cleanPath}`;
-  return `${API_BASE_URL}${encodeURI(cleanPath)}`;
+  
+  // NOW IT USES THE DYNAMIC SERVER URL (Works on Vercel & Localhost)
+  return `${SERVER_URL}${encodeURI(cleanPath)}`;
 };
 
 // --- OPTIMIZED CARD ---
@@ -178,9 +181,9 @@ const Menu = () => {
             )}
             
             {filtered.length === 0 && (
-                <div className="text-center text-gray-400 py-12">
-                    <p>No items found in this category.</p>
-                </div>
+              <div className="text-center text-gray-400 py-12">
+                  <p>No items found in this category.</p>
+              </div>
             )}
           </>
         )}

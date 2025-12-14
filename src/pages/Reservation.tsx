@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { endpoints } from '../services/api';
+// 1. IMPORT SERVER_URL (Just like Menu page)
+import { endpoints, SERVER_URL } from '../services/api';
 import { ReservationPayload } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageHeader from '../components/PageHeader';
@@ -14,6 +15,15 @@ const TIME_SLOTS = [
   "16:00-17:00", "17:00-18:00", "18:00-19:00", "19:00-20:00"
 ];
 
+// 2. ADD THE IMAGE HELPER (Safe for Vercel)
+const getImageUrl = (imagePath: string) => {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath; // Returns Unsplash links as-is
+  let cleanPath = imagePath.replace(/\\/g, '/');
+  if (!cleanPath.startsWith('/')) cleanPath = `/${cleanPath}`;
+  return `${SERVER_URL}${encodeURI(cleanPath)}`;
+};
+
 const Reservation = () => {
   const { register, handleSubmit, watch, setValue, control, formState: { errors }, reset } = useForm<ReservationPayload>();
   const [status, setStatus] = useState<'idle' | 'checking' | 'success' | 'error'>('idle');
@@ -24,16 +34,12 @@ const Reservation = () => {
   const selectedDateObj = watch('date');
   const selectedSlot = watch('timeSlot');
 
-  // --- THE FIX IS HERE ---
   const formatDateForApi = (date: Date | string) => {
     if (!date) return "";
     const d = new Date(date);
-    
-    // Manually construct YYYY-MM-DD using Local Time
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    
     return `${year}-${month}-${day}`;
   };
 
@@ -70,7 +76,6 @@ const Reservation = () => {
   const onSubmit = async (data: ReservationPayload) => {
     setStatus('checking'); setErrorMsg('');
     try {
-      // Use the fixed date formatter here too
       const payload = { ...data, date: formatDateForApi(data.date) };
       
       if (payload.date && payload.timeSlot) {
@@ -110,7 +115,12 @@ const Reservation = () => {
         .react-datepicker__day:hover { background-color: #E8E1D9; border-radius: 2px; }
       `}</style>
 
-      <PageHeader title="Reserve a Table" subtitle="Book Your Spot" image="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80" />
+      {/* 3. WRAP THE IMAGE IN THE HELPER (Best Practice) */}
+      <PageHeader 
+        title="Reserve a Table" 
+        subtitle="Book Your Spot" 
+        image={getImageUrl("https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80")} 
+      />
 
       <div className="relative z-20 px-4 -mt-20">
         <div className="w-full max-w-4xl mx-auto bg-white p-8 md:p-14 shadow-[0_30px_60px_rgba(0,0,0,0.3)] border-t-4 border-white relative overflow-hidden rounded-sm">
@@ -133,8 +143,8 @@ const Reservation = () => {
                   <div className={inputGroupClass}>
                     <label className={labelClass}>Full Name</label>
                     <div className="relative">
-                       <input {...register("name", { required: "Name required" })} placeholder="John Doe" className={inputClass} />
-                       <HiUser className="absolute right-4 top-3.5 text-cafe-300 text-lg"/>
+                        <input {...register("name", { required: "Name required" })} placeholder="John Doe" className={inputClass} />
+                        <HiUser className="absolute right-4 top-3.5 text-cafe-300 text-lg"/>
                     </div>
                     {errors.name && <span className="text-red-500 text-xs font-bold">⚠️ {errors.name.message}</span>}
                   </div>
@@ -233,8 +243,8 @@ const Reservation = () => {
                     {isCheckingAvailability && <span className="text-cafe-500 text-sm italic animate-pulse">Checking availability...</span>}
                     {!isCheckingAvailability && availability !== null && (
                       <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${availability > 0 ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                         <span className={`w-2 h-2 rounded-full ${availability > 0 ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                         <span className="text-sm font-bold uppercase tracking-wide">{availability > 0 ? `${availability} seats available` : 'Fully Booked'}</span>
+                          <span className={`w-2 h-2 rounded-full ${availability > 0 ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                          <span className="text-sm font-bold uppercase tracking-wide">{availability > 0 ? `${availability} seats available` : 'Fully Booked'}</span>
                       </div>
                     )}
                 </div>

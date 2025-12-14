@@ -2,7 +2,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { HiArrowNarrowRight, HiStar } from 'react-icons/hi';
 import { useRef, useEffect, useState, useMemo } from 'react';
-import { endpoints } from '../services/api'; 
+// 1. IMPORT SERVER_URL HERE
+import { endpoints, SERVER_URL } from '../services/api'; 
 import { MenuItem } from '../types'; 
 
 // Animation variants
@@ -16,7 +17,8 @@ const staggerContainer = {
   visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
 };
 
-const API_BASE_URL = 'http://localhost:4000'; // NOTE: Change to your IP (e.g., 192.168.x.x) if testing on phone
+// 2. DELETE THE HARDCODED URL
+// const API_BASE_URL = 'http://localhost:4000'; <--- GONE!
 
 const Home = () => {
   const [featuredItems, setFeaturedItems] = useState<MenuItem[]>([]);
@@ -26,13 +28,15 @@ const Home = () => {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
 
-  // Helper to generate URL
+  // 3. UPDATE THE IMAGE HELPER
   const getImageUrl = (imagePath: string) => {
     if (!imagePath) return '';
     if (imagePath.startsWith('http')) return imagePath;
     let cleanPath = imagePath.replace(/\\/g, '/');
     if (!cleanPath.startsWith('/')) cleanPath = `/${cleanPath}`;
-    return `${API_BASE_URL}${encodeURI(cleanPath)}`;
+    
+    // Use the dynamic SERVER_URL (Works on Vercel & Localhost)
+    return `${SERVER_URL}${encodeURI(cleanPath)}`;
   };
 
   useEffect(() => {
@@ -43,9 +47,7 @@ const Home = () => {
         const topItems = validItems.slice(0, 6); // Get top 6 items
         setFeaturedItems(topItems);
 
-        // --- THE FIX: PRELOAD IMAGES ---
-        // This forces the browser to download these 6 images immediately in the background
-        // so they are ready BEFORE the user scrolls down.
+        // Preload Images Logic
         topItems.forEach((item: MenuItem) => {
             if (item.image) {
                 const img = new Image();
@@ -159,9 +161,8 @@ const Home = () => {
                         <img 
                           src={getImageUrl(item.image)} 
                           alt={item.name} 
-                          // FIX: loading="eager" forces download immediately
                           loading="eager" 
-                          decoding="sync" // sync decoding ensures it paints before showing
+                          decoding="sync" 
                           crossOrigin="anonymous"
                           className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-700 will-change-transform" 
                           onError={(e) => {
