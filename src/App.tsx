@@ -7,11 +7,11 @@ import Contact from './pages/Contact';
 import ScrollToTop from './components/ScrollToTop';
 
 // ADMIN IMPORTS
-import Login from './pages/admin/Login';
+import Login from './pages/Admin/Login';
 import { AuthProvider } from './context/AuthContext';
 import AdminLayout from './components/admin/AdminLayout';
 import ProtectedRoute from './components/admin/ProtectedRoute';
-import Dashboard from './pages/admin/Dashboard';
+import Dashboard from './pages/Admin/Dashboard';
 import MenuManager from './pages/Admin/MenuManager';
 import Reservations from './pages/Admin/Reservations';
 import Messages from './pages/Admin/Messages';
