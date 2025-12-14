@@ -3,7 +3,7 @@ import axios from 'axios';
 // 1. DEFINE THE SERVER URL (For Images)
 // This logic checks if the env var exists (Vercel). If not, it uses localhost.
 // NOTE: We remove any trailing slash to avoid double slashes later.
-export const SERVER_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+export const SERVER_URL = (import.meta.env.VITE_API_BASE_URL ).replace(/\/$/, '');
 
 // 2. DEFINE THE API URL (For Axios Data Fetching)
 const API_URL = `${SERVER_URL}/api`;
