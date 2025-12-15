@@ -16,18 +16,34 @@ const Contact = () => {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [serverError, setServerError] = useState('');
 
+  // ---------------------------------------------------------
+  // THE FIX: Smart Error Handling
+  // ---------------------------------------------------------
   const onSubmit = async (data: ContactForm) => {
     setStatus('submitting');
+    setServerError(''); // Clear previous errors
+
     try {
       await endpoints.contact.submit(data);
       setStatus('success');
       reset();
     } catch (err: any) {
+      console.error("Contact Error:", err);
       setStatus('error');
-      const msg = err.response?.status === 429 
-        ? "You're sending too many messages. Please try again in an hour." 
-        : (err.response?.data?.message || "Failed to send message.");
-      setServerError(msg);
+
+      // 1. Check for "Too Many Requests" (429)
+      if (err.response?.status === 429) {
+        setServerError("You are sending too many messages. Please try again later.");
+        return;
+      }
+
+      // 2. Extract Specific Backend Message OR Network Error
+      // err.response.data.message = "Validation failed" (from Server)
+      // err.message = "Network Error" (if server is down/internet off)
+      const backendMsg = err.response?.data?.message;
+      const networkMsg = err.message;
+
+      setServerError(backendMsg || networkMsg || "Failed to send message. Please try again.");
     }
   };
 
@@ -141,7 +157,6 @@ const Contact = () => {
                       className={inputClass}
                       placeholder="John Doe"
                     />
-                    {/* FIXED: 'block' and 'mt-2' ensure it sits below */}
                     {errors.name && <span className="text-red-500 text-xs mt-2 block font-medium">⚠️ {errors.name.message}</span>}
                   </div>
 
@@ -155,7 +170,6 @@ const Contact = () => {
                       className={inputClass}
                       placeholder="john@example.com"
                     />
-                    {/* FIXED */}
                     {errors.email && <span className="text-red-500 text-xs mt-2 block font-medium">⚠️ {errors.email.message}</span>}
                   </div>
 
@@ -170,12 +184,13 @@ const Contact = () => {
                       className="w-full bg-cafe-50 border border-cafe-200 p-4 outline-none focus:border-cafe-500 focus:bg-white transition-all resize-none text-gray-800 rounded-sm placeholder-gray-300"
                       placeholder="How can we help you?"
                     ></textarea>
-                    {/* FIXED */}
                     {errors.message && <span className="text-red-500 text-xs mt-2 block font-medium">⚠️ {errors.message.message}</span>}
                   </div>
 
+                  {/* IMPROVED ERROR BOX */}
                   {status === 'error' && (
-                    <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm text-center">
+                    <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm text-center rounded">
+                      <strong className="font-bold block mb-1">Error sending message</strong>
                       {serverError}
                     </div>
                   )}

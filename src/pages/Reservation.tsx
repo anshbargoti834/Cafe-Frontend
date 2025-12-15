@@ -73,25 +73,56 @@ const Reservation = () => {
     return () => { cancelled = true; };
   }, [selectedDateObj, selectedSlot]);
 
-  const onSubmit = async (data: ReservationPayload) => {
-    setStatus('checking'); setErrorMsg('');
+const onSubmit = async (data: ReservationPayload) => {
+    setStatus('checking'); 
+    setErrorMsg('');
+    
     try {
       const payload = { ...data, date: formatDateForApi(data.date) };
       
+      // 1. Pre-check availability (Frontend Optimization)
       if (payload.date && payload.timeSlot) {
         try {
             const res = await endpoints.reservations.checkAvailability(payload.date, payload.timeSlot);
             if (res.data.remainingSeats < payload.numberOfGuests) {
-                setStatus('error'); setErrorMsg('Not enough seats available.'); return;
+                setStatus('error'); 
+                setErrorMsg(`Only ${res.data.remainingSeats} seats left for this slot.`); 
+                return;
             }
-        } catch(e) {}
+        } catch(e) {
+            // If check fails, we continue and let the main create API handle it
+        }
       }
+
+      // 2. Attempt to Create Reservation
       await endpoints.reservations.create(payload);
+      
+      // 3. Success Handling
       setStatus('success');
       setAvailability(prev => prev !== null ? Math.max(0, (prev - (payload.numberOfGuests || 1))) : null);
-      setTimeout(() => { reset(); setStatus('idle'); setAvailability(null); setValue('timeSlot', ''); }, 3000);
+      
+      setTimeout(() => { 
+          reset(); 
+          setStatus('idle'); 
+          setAvailability(null); 
+          setValue('timeSlot', ''); 
+      }, 3000);
+
     } catch (err: any) {
-      setStatus('error'); setErrorMsg("We couldn't book your table. Please check your details.");
+      console.error("Booking Error:", err);
+      setStatus('error');
+
+      // ---------------------------------------------------------
+      // THE FIX: Extract the actual message from the backend
+      // ---------------------------------------------------------
+      // Check if Axios/Fetch response has a message
+      const serverMessage = err.response?.data?.message || err.message;
+
+      if (serverMessage) {
+        setErrorMsg(serverMessage);
+      } else {
+        setErrorMsg("We couldn't book your table. Please check your details.");
+      }
     }
   };
 
