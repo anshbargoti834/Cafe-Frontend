@@ -61,7 +61,7 @@ const Dashboard = () => {
           count={stats.items} 
           icon={<HiClipboardList className="text-2xl"/>} 
           color="bg-blue-500"
-          linkTo="/Admin/MenuManager" 
+          linkTo="/admin/menumanager" 
         />
         
         <StatCard 
@@ -69,7 +69,7 @@ const Dashboard = () => {
           count={stats.reservations} 
           icon={<HiCalendar className="text-2xl"/>} 
           color="bg-purple-500"
-          linkTo="/Admin/Reservations" 
+          linkTo="/admin/reservations" 
         />
         
         <StatCard 
@@ -77,7 +77,7 @@ const Dashboard = () => {
           count={stats.messages} 
           icon={<HiMail className="text-2xl"/>} 
           color="bg-orange-500"
-          linkTo="/Admin/Messages" 
+          linkTo="/admin/messages" 
         />
       </div>
 
